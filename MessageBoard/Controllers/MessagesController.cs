@@ -13,7 +13,7 @@ namespace MessageBoard
 {
     public class MessagesController : ApiController
     {
-        static string MyConnectionString = "Server=localhost;Database=AteaMessages;Uid=root;";
+        static string MyConnectionString = "Server=188.166.99.147;Database=AteaMessages;Uid=TestUser;Pwd=TestPassword123";
         MySqlConnection connection = new MySqlConnection(MyConnectionString);
 
         // GET api/messages
