@@ -2,59 +2,58 @@
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Collections.Generic;
 
 
 namespace MessagePost
 {
-
     class Program
     {
         static void Main(string[] args)
         {
+            RunAsync().Wait();
+        }
+
+        static async Task RunAsync()
+        {
             do
             {
                 Console.Write("Enter message to post (Enter \"!quit\" to quit): ");
-                string message = Console.ReadLine();
-                if (message.Equals("!quit") || message.Equals("\"!quit\"")) 
+                string text = Console.ReadLine();
+                if (text.Equals("!quit") || text.Equals("\"!quit\""))
                 {
                     break;
                 }
-
                 try
-                { 
-                    var httpWebRequest = (HttpWebRequest)WebRequest.Create("http://localhost:58443/api/messages");
-                    httpWebRequest.ContentType = "text/json";
-                    httpWebRequest.Method = "POST";
-                
-                    using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+                {
+                    string apiUrl = "http://localhost:58443/api/messages";
+                    var client = new HttpClient();
+                    var message = new Dictionary<string, string>()
                     {
-                        string json = "{\"TextMessage\":\"" + message + "\"";
+                        {"TextMessage", text}
+                    };
+                    var content = new FormUrlEncodedContent(message);
 
-                        streamWriter.Write(json);
-                        streamWriter.Flush();
-                        streamWriter.Close();
-                    }
-
-                    var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-                    using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
-                    {
-                        var result = streamReader.ReadToEnd();
-                    }
+                    var response = await client.PostAsync(apiUrl, content);
+                    response.EnsureSuccessStatusCode();
+                }
+                catch (HttpRequestException hre)
+                {
+                    Console.WriteLine(hre.Message);
+                    Console.WriteLine("The http request or response was not successful.");
+                    continue;
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Unexpected error, exiting");
-                    Console.WriteLine(e.StackTrace);
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine("Unexpected error, exiting.");
                     Console.Read();
                     Environment.Exit(0);
                 }
-                
-            } while (true);
-
-
-            
+            } while (true);    
         }
     }
 }
